@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Server
 {
@@ -18,6 +19,7 @@ namespace Server
         static void Main(string[] args)
         {
             Console.Title = "CHAT SERVER - by zhiyan114";
+            Console.OutputEncoding = Encoding.UTF8;
             TcpAssigner(args);
             Thread ConnectionThread = new Thread(new ThreadStart(ConnectionHandler));
             ConnectionThread.Start();

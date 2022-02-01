@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Client
 {
@@ -13,6 +14,7 @@ namespace Client
         static void Main(string[] args)
         {
             Console.Title = "CHAT CLIENT - by zhiyan114";
+            Console.OutputEncoding = Encoding.UTF8;
             Console.WriteLine("Select your username: ");
             string Username = Console.ReadLine();
             while (client == null)
@@ -22,12 +24,18 @@ namespace Client
                 if(BindInfo.Length == 1)
                 {
                     client = new TcpClient(BindInfo[0], 42069);
-                    if (client.Connected) break;
+                    if (client.Connected) {
+                        Console.Title = string.Format("Connected... ({0}:{1})",BindInfo[0],42069);
+                        break; 
+                    };
                     Console.WriteLine("Client is not able to connect, please try again");
                 } if(BindInfo.Length == 2)
                 {
                     client = new TcpClient(BindInfo[0], int.TryParse(BindInfo[1], out int BindPort) ? BindPort: 42069);
-                    if(client.Connected) break;
+                    if (client.Connected) {
+                        Console.Title = string.Format("Connected... ({0}:{1})", BindInfo[0], BindPort);
+                        break;
+                    };
                     Console.WriteLine("Client is not able to connect, please try again");
                 } else
                     Console.WriteLine("Invalid Server IP/PORT");
