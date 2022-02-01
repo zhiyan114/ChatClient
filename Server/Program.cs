@@ -20,6 +20,7 @@ namespace Server
             Console.Title = "CHAT SERVER - by zhiyan114";
             TcpAssigner(args);
             Thread ConnectionThread = new Thread(new ThreadStart(ConnectionHandler));
+            ConnectionThread.Start();
             Console.WriteLine("Connection Thread: Started...");
             while (!TerminateServer)
             {
@@ -61,6 +62,7 @@ namespace Server
                             TerminateServer = true;
                             Listener.Stop();
                             ConnectionThread.Interrupt();
+                            ConnectionThread.Join();
                             Console.WriteLine("Performing client termination...");
                             foreach (TcpClient cli in Clients)
                             {
@@ -69,6 +71,7 @@ namespace Server
                             foreach(KeyValuePair<TcpClient,Thread> cliThread in ClientThreads)
                             {
                                 cliThread.Value.Interrupt();
+                                cliThread.Value.Join();
                             }
                             break;
                         }
@@ -125,30 +128,41 @@ namespace Server
             Listener.Start();
             while(!TerminateServer)
             {
-                TcpClient Client = Listener.AcceptTcpClient();
-                Clients.Add(Client);
-                Client.ReceiveTimeout = 30000;
-                // Thread handling for clients
-                ClientThreads.Add(Client, new Thread(new ThreadStart(() => {
-                    while(!TerminateServer && Client.Connected)
-                    {
-                        // Receives the message and relay it
-                        NetworkStream NetStream = Client.GetStream();
-                        if(!NetStream.DataAvailable) Thread.Sleep(17);
-                        using(MemoryStream DataStream = new MemoryStream())
+                try
+                {
+                    TcpClient Client = Listener.AcceptTcpClient();
+                    Clients.Add(Client);
+                    Client.ReceiveTimeout = 30000;
+                    // Thread handling for clients
+                    Thread CliThread = new Thread(new ThreadStart(() => {
+                        while (!TerminateServer && Client.Connected)
                         {
-                            NetStream.CopyTo(DataStream);
-                            Message MsgObj = NetworkEncoder.Decode(DataStream);
-                            foreach(TcpClient cli in Clients)
-                            {
-                                if (cli == Client) continue;
-                                Console.WriteLine(string.Format("[{0}]:{1}", MsgObj.Name, MsgObj.Content));
-                                NetworkEncoder.Encode(cli.GetStream(), new Message(MsgObj.Name, MsgObj.Content));
-                            }
+                            // Receives the message and relay it
+                            NetworkStream NetStream = Client.GetStream();
+                            if (!NetStream.DataAvailable) 
+                                Thread.Sleep(17);
+                            else
+                                using (MemoryStream DataStream = new MemoryStream())
+                                {
+                                    NetStream.CopyTo(DataStream);
+                                    Message MsgObj = NetworkEncoder.Decode(DataStream);
+                                    foreach (TcpClient cli in Clients)
+                                    {
+                                        if (cli == Client) continue;
+                                        Console.WriteLine(string.Format("[{0}]:{1}", MsgObj.Name, MsgObj.Content));
+                                        NetworkEncoder.Encode(cli.GetStream(), new Message(MsgObj.Name, MsgObj.Content));
+                                    }
+                                };
+
+
                         }
-                        
-                    }
-                })));
+                    }));
+                    ClientThreads.Add(Client, CliThread);
+                    CliThread.Start();
+                } catch(Exception)
+                {
+
+                }
             }
 
         }

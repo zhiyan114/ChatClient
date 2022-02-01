@@ -17,7 +17,7 @@ using System.Security.Cryptography;
  * - Name: protobuf-net (2.4.6)
  *  - Repository: https://github.com/protobuf-net/protobuf-net
  */
-namespace Server
+namespace Client
 {
     /// <summary>
     /// This class defines the message structure that will be sent through the network
