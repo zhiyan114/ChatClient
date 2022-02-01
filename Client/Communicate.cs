@@ -6,11 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using ProtoBuf;
 using System.Security.Cryptography;
+using System.Net.Sockets;
 /*
- * Name: Communicate.cs
- * Description: Standardized communication protocol between the server and the client
- * Author: zhiyan114
- */
+* Name: Communicate.cs
+* Description: Standardized communication protocol between the server and the client
+* Author: zhiyan114
+*/
 
 /*
  * Library Implementation:
@@ -27,9 +28,9 @@ namespace Client
     {
         [ProtoMember(1)]
         public byte[] MessageIdentifier { get; set; }
-        [ProtoMember(1)]
-        public string Name { get; set; }
         [ProtoMember(2)]
+        public string Name { get; set; }
+        [ProtoMember(3)]
         public string Content { get; set; }
         public Message(string Name, string Content)
         {
@@ -43,6 +44,7 @@ namespace Client
             using (SHA512 Hasher = new SHA512Managed())
                 MessageIdentifier = Hasher.ComputeHash(Encoding.UTF8.GetBytes(Name + Content + new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()));
         }
+        public Message() { } // Protobuf Support
     }
     /// <summary>
     /// This class defines the encoding structure that the message will be using
@@ -57,16 +59,31 @@ namespace Client
         public static void Encode(Stream NetStream, Message MsgObj)
         {
             // Message are all handled in plaintext because I can't be bother with encryption, especially on school's lockdown device where CA complaint will be hard to deal with...
-            Serializer.Serialize(NetStream, MsgObj);
+            using (MemoryStream MemStream = new MemoryStream())
+            {
+                Serializer.Serialize(MemStream, MsgObj);
+                NetStream.Write(MemStream.ToArray(), 0, MemStream.ToArray().Length);
+            }
         }
         /// <summary>
         /// This function decodes the stream and returns the Message Object
         /// </summary>
         /// <param name="NetStream">Network Stream</param>
         /// <returns>Message Object</returns>
-        public static Message Decode(Stream NetStream)
+        public static Message Decode(NetworkStream NetStream)
         {
-            return Serializer.Deserialize<Message>(NetStream);
+            using (MemoryStream MemStream = new MemoryStream())
+            {
+                byte[] data = new byte[1024];
+                int StreamByte = 0;
+                while (NetStream.DataAvailable)
+                {
+                    StreamByte = NetStream.Read(data, 0, data.Length);
+                    MemStream.Write(data, 0, StreamByte);
+                }
+                MemStream.Seek(0, SeekOrigin.Begin);
+                return Serializer.Deserialize<Message>(MemStream); ;
+            }
         }
     }
 }

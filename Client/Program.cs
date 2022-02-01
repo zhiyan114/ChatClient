@@ -19,7 +19,12 @@ namespace Client
             {
                 Console.WriteLine("Type the server IP Connection (format: IP:PORT): ");
                 string[] BindInfo = Console.ReadLine().Split(":");
-                if(BindInfo.Length == 2)
+                if(BindInfo.Length == 1)
+                {
+                    client = new TcpClient(BindInfo[0], 42069);
+                    if (client.Connected) break;
+                    Console.WriteLine("Client is not able to connect, please try again");
+                } if(BindInfo.Length == 2)
                 {
                     client = new TcpClient(BindInfo[0], int.TryParse(BindInfo[1], out int BindPort) ? BindPort: 42069);
                     if(client.Connected) break;
@@ -33,7 +38,16 @@ namespace Client
             Console.WriteLine("Client Setup Completed, type a message to send or wait to receive the message...");
             while(true)
             {
-                NetworkEncoder.Encode(client.GetStream(), new Message(Username, Console.ReadLine()));
+                try
+                {
+                    string message = Console.ReadLine();
+                    if (client.Connected)
+                        NetworkEncoder.Encode(client.GetStream(), new Message(Username, message));
+                    Console.WriteLine(string.Format("[{0}]: {1}", Username, message));
+                } catch(Exception ex)
+                {
+                    Console.WriteLine("An Error Occured: " + ex.Message);
+                }
             }
         }
         /// <summary>
@@ -41,7 +55,16 @@ namespace Client
         /// </summary>
         static void MessageReceiver()
         {
-            
+            while(true)
+            {
+                NetworkStream NetStream = client.GetStream();
+                if (!NetStream.DataAvailable) {
+                    Thread.Sleep(17);
+                    continue;
+                }
+                Message MsgObj = NetworkEncoder.Decode(NetStream);
+                Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
+            }
         }
     }
 }

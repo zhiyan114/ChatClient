@@ -52,7 +52,7 @@ namespace Server
                             Console.WriteLine("[Server]: " + cmdArgs[1]);
                             foreach(TcpClient cli in Clients)
                             {
-                                NetworkEncoder.Encode(cli.GetStream(), new Message("Server", args[1]));
+                                NetworkEncoder.Encode(cli.GetStream(), new Message("Server", cmdArgs[1]));
                             }
                             break;
                         }
@@ -131,30 +131,40 @@ namespace Server
                 try
                 {
                     TcpClient Client = Listener.AcceptTcpClient();
+                    Console.WriteLine("Client Connected...");
                     Clients.Add(Client);
-                    Client.ReceiveTimeout = 30000;
                     // Thread handling for clients
                     Thread CliThread = new Thread(new ThreadStart(() => {
                         while (!TerminateServer && Client.Connected)
                         {
-                            // Receives the message and relay it
                             NetworkStream NetStream = Client.GetStream();
-                            if (!NetStream.DataAvailable) 
+                            // Receives the message and relay it
+                            if (!NetStream.DataAvailable)
+                            {
                                 Thread.Sleep(17);
-                            else
-                                using (MemoryStream DataStream = new MemoryStream())
+                                continue;
+                            }   
+                            Message MsgObj = NetworkEncoder.Decode(NetStream);
+                            Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
+                            for(int i=0;i<Clients.Count;i++)
+                            {
+                                TcpClient cli = Clients[i];
+                                if (cli == Client) continue;
+                                try
                                 {
-                                    NetStream.CopyTo(DataStream);
-                                    Message MsgObj = NetworkEncoder.Decode(DataStream);
-                                    foreach (TcpClient cli in Clients)
-                                    {
-                                        if (cli == Client) continue;
-                                        Console.WriteLine(string.Format("[{0}]:{1}", MsgObj.Name, MsgObj.Content));
-                                        NetworkEncoder.Encode(cli.GetStream(), new Message(MsgObj.Name, MsgObj.Content));
-                                    }
-                                };
-
-
+                                    NetworkEncoder.Encode(cli.GetStream(), MsgObj);
+                                }
+                                catch (IOException)
+                                {
+                                    // Stream cannot be written therefore the client is disconnected
+                                    cli.Close();
+                                    Clients.Remove(cli);
+                                    ClientThreads[cli].Interrupt();
+                                    ClientThreads.Remove(cli);
+                                    Console.WriteLine("Client Disconnected...");
+                                    i--;
+                                }
+                            }
                         }
                     }));
                     ClientThreads.Add(Client, CliThread);
