@@ -52,8 +52,8 @@ namespace Server
         /// <summary>
         /// This function encodes Message Object into byte array that will be stream through NetStream
         /// </summary>
-        /// <param name="NetStream"></param>
-        /// <param name="MsgObj"></param>
+        /// <param name="NetStream">Network Stream</param>
+        /// <param name="MsgObj">Message Object</param>
         public static void Encode(Stream NetStream, Message MsgObj)
         {
             // Message are all handled in plaintext because I can't be bother with encryption, especially on school's lockdown device where CA complaint will be hard to deal with...
@@ -62,7 +62,7 @@ namespace Server
         /// <summary>
         /// This function decodes the stream and returns the Message Object
         /// </summary>
-        /// <param name="NetStream"></param>
+        /// <param name="NetStream">Network Stream</param>
         /// <returns>Message Object</returns>
         public static Message Decode(Stream NetStream)
         {
