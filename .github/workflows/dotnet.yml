@@ -23,6 +23,21 @@ jobs:
       run: dotnet publish -c Release -r linux-x64 -p:PublishReadyToRun=true "Chat Client.sln"
     #- name: Test
     #  run: dotnet test --no-build --verbosity normal
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          My comment
+          On this release
+          before exiting
+          draft
+        draft: true
+        prerelease: false
 
   Windows-build:
     
@@ -37,5 +52,20 @@ jobs:
       run: dotnet restore
     - name: Build and Configure Deployment Mode
       run: dotnet publish -c Release -r win-x64 -p:PublishReadyToRun=true "Chat Client.sln"
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          My comment
+          On this release
+          before exiting
+          draft
+        draft: true
+        prerelease: false
     #- name: Test
     #  run: dotnet test --no-build --verbosity normal
