@@ -61,13 +61,13 @@ jobs:
         Xcopy /E /I "..\Client\bin\Release\net5.0\win-x64\publish\" Client/
         Xcopy /E /I "..\Server\bin\Release\net5.0\win-x64\publish\" Server/
         tar -a -c -f ../Windows-x64.zip Client/* Server/*
-        del /F /Q Client
-        del /F /Q Server
+        Remove-Item -Path Client -Force -Recurse
+        Remove-Item -Path Server -Force -Recurse
         Xcopy /E /I "..\Client\bin\Release\net5.0\linux-x64\publish" Client/
         Xcopy /E /I "..\Server\bin\Release\net5.0\linux-x64\publish" Server/
         tar -a -c -f ../Linux-x64.zip Client/* Server/*
         cd ..
-        del /F /Q TempPKG
+        Remove-Item -Path TempPKG -Force -Recurse
         
     - name: Create draft release
       id: create_release
