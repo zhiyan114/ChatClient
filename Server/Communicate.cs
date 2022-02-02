@@ -41,7 +41,7 @@ namespace Server
              * Use SHA512 (sounds better than SHA256 lol) to create a unique message indentifier
              * Hash is computed by using the both the supplied parameter Name and Content as well as the current unix timestamp. Supplied string/int will be converted into UTF8 byte standards.
              */
-            using (SHA512 Hasher = new SHA512Managed())
+            using (SHA1 Hasher = new SHA1Managed())
                 MessageIdentifier = Hasher.ComputeHash(Encoding.UTF8.GetBytes(Name + Content + new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()));
         }
         public Message() { } // Protobuf Support
