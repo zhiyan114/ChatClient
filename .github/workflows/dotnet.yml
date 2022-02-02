@@ -56,18 +56,14 @@ jobs:
       run: dotnet publish -c Release -r linux-x64 --self-contained=true "Chat Client.sln"
     - name: ZIP/Package the build file based on the Operating System
       run: |
-        mkdir TempPKG
-        cd TempPKG
-        Xcopy /E /I "..\Client\bin\Release\net5.0\win-x64\publish\" Client/
-        Xcopy /E /I "..\Server\bin\Release\net5.0\win-x64\publish\" Server/
-        tar -a -c -f ../Windows-x64.zip Client/* Server/*
-        Remove-Item -Path Client -Force -Recurse
-        Remove-Item -Path Server -Force -Recurse
-        Xcopy /E /I "..\Client\bin\Release\net5.0\linux-x64\publish" Client/
-        Xcopy /E /I "..\Server\bin\Release\net5.0\linux-x64\publish" Server/
-        tar -a -c -f ../Linux-x64.zip Client/* Server/*
-        cd ..
-        Remove-Item -Path TempPKG -Force -Recurse
+        Copy-Item -Path "Client\bin\Release\net5.0\win-x64\publish\" -Destination "PubClient\" -Recurse
+        Copy-Item -Path "Server\bin\Release\net5.0\win-x64\publish\" -Destination "PubServer\" -Recurse
+        tar -a -c -f Windows-x64.zip PubClient/* PubServer/*
+        Remove-Item -Path PubClient -Force -Recurse
+        Remove-Item -Path PubServer -Force -Recurse
+        Copy-Item -Path "Client\bin\Release\net5.0\linux-x64\publish" -Destination "PubClient\" -Recurse
+        Copy-Item -Path "Server\bin\Release\net5.0\linux-x64\publish" -Destination "PubServer\" -Recurse
+        tar -a -c -f Linux-x64.zip PubClient/* PubServer/*
         
     - name: Create draft release
       id: create_release
