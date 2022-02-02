@@ -57,9 +57,19 @@ namespace Server
                             for (int i = 1; i < cmdArgs.Length; i++)
                                 internalMessage += cmdArgs[i]+" ";
                             Console.WriteLine("[Server]: " + internalMessage);
-                            foreach(TcpClient cli in Clients)
+                            for (int i = 0; i < Clients.Count; i++)
                             {
-                                NetworkEncoder.Encode(cli.GetStream(), new Message("Server", internalMessage));
+                                TcpClient cli = Clients[i];
+                                try
+                                {
+                                    NetworkEncoder.Encode(cli.GetStream(), new Message("Server", internalMessage));
+                                }
+                                catch (IOException)
+                                {
+                                    // Stream cannot be written therefore the client is disconnected
+                                    disconnectClient(cli);
+                                    i--;
+                                }
                             }
                             break;
                         }
