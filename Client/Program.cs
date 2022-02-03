@@ -15,6 +15,7 @@ namespace Client
         {
             Console.Title = "CHAT CLIENT - by zhiyan114";
             Console.OutputEncoding = Encoding.UTF8;
+            
             Console.WriteLine("Select your username: ");
             string Username = Console.ReadLine();
             while (client == null)
@@ -52,11 +53,22 @@ namespace Client
                     if (client.Connected)
                         NetworkEncoder.Encode(client.GetStream(), new Message(Username, message));
                     Console.WriteLine(string.Format("[{0}]: {1}", Username, message));
+                } catch(IOException)
+                {
+                    Console.WriteLine("Server is current offline, please try reconnecting later...");
+                    Console.ReadLine();
+                    break;
                 } catch(Exception ex)
                 {
                     Console.WriteLine("An Error Occured: " + ex.Message);
+                    Console.ReadLine();
+                    break;
                 }
             }
+        }
+        static void Console_Exit(object sender,EventArgs e)
+        {
+
         }
         /// <summary>
         /// This function handles the packet from the server. Should be threaded.

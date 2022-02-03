@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ProtoBuf;
 using System.Security.Cryptography;
 using System.Net.Sockets;
+using System.ComponentModel;
 /*
 * Name: Communicate.cs
 * Description: Standardized communication protocol between the server and the client
@@ -21,6 +22,17 @@ using System.Net.Sockets;
 namespace Server
 {
     /// <summary>
+    /// This enum contain the list of message type. New implementation shouldn't break the existing codebase.
+    /// </summary>
+    [ProtoContract]
+    enum MessageType
+    {
+        [ProtoEnum]
+        ChatMessage,
+        [ProtoEnum]
+        Command,
+    }
+    /// <summary>
     /// This class defines the message structure that will be sent through the network
     /// </summary>
     [ProtoContract]
@@ -29,20 +41,25 @@ namespace Server
         [ProtoMember(1)]
         public byte[] MessageIdentifier { get; set; }
         [ProtoMember(2)]
-        public string Name { get; set; }
+        [DefaultValue(MessageType.ChatMessage)]
+        public MessageType Type { get; set; } = MessageType.ChatMessage;
         [ProtoMember(3)]
+        public string Name { get; set; }
+        [ProtoMember(4)]
         public string Content { get; set; }
-        public Message(string Name, string Content)
+        public Message(string Name, string Content, MessageType MsgType = MessageType.ChatMessage)
         {
             // Do the obvious by assigning all the objects to its property in the class
             this.Name = Name;
             this.Content = Content;
+            this.Type = MsgType;
             /*
              * Use SHA512 (sounds better than SHA256 lol) to create a unique message indentifier
              * Hash is computed by using the both the supplied parameter Name and Content as well as the current unix timestamp. Supplied string/int will be converted into UTF8 byte standards.
              */
-            using (SHA1 Hasher = new SHA1Managed())
-                MessageIdentifier = Hasher.ComputeHash(Encoding.UTF8.GetBytes(Name + Content + new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()));
+            if (MsgType == MessageType.ChatMessage)
+                using (SHA1 Hasher = new SHA1Managed())
+                    MessageIdentifier = Hasher.ComputeHash(Encoding.UTF8.GetBytes(Name + Content + new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()));
         }
         public Message() { } // Protobuf Support
     }
