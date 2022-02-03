@@ -24,16 +24,44 @@ namespace Client
                 string[] BindInfo = string.IsNullOrWhiteSpace(UserInputIP) ? Array.Empty<string>() : UserInputIP.Split(":");
                 IPAddress Addr = IPAddress.Any;
                 int Port = 42069;
-                if(BindInfo.Length == 1 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBind))
+
+                if (BindInfo.Length == 1 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBind))
                 {
                     Addr = AddrBind;
-                } if(BindInfo.Length == 2 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBindb) && int.TryParse(BindInfo[1], out int BindPort))
+                } else if(BindInfo.Length == 2 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBindb) && int.TryParse(BindInfo[1], out int BindPort))
                 {
                     Addr = AddrBindb;
                     Port = BindPort;
                 } else
-                    Console.WriteLine("Invalid Server IP/PORT");
-
+                {
+                    // Do a domain name to validation before calling it invalid
+                    try
+                    {
+                        IPAddress[] ResolvedIP;
+                        if (BindInfo.Length > 0 && (ResolvedIP = Dns.GetHostAddresses(BindInfo[0])).Length > 0)
+                        {
+                            foreach(IPAddress IP in ResolvedIP)
+                            {
+                                // Get the first available IPv4 because IPv6 is not supported yet
+                                if(IP.AddressFamily == AddressFamily.InterNetwork)
+                                {
+                                    Addr = IP;
+                                    break;
+                                }
+                            }
+                        } else
+                        {
+                            Console.WriteLine("Invalid Server IP/PORT");
+                            continue;
+                        }
+                    } catch(SocketException)
+                    {
+                        Console.WriteLine("Invalid Server IP/PORT");
+                        continue;
+                    }
+                    
+                }
+                    
                 if (ClientManager.tryConnect(Addr,Port))
                 {
                     Console.Title = string.Format("Connected... ({0}:{1})", BindInfo[0], 42069);
@@ -51,6 +79,7 @@ namespace Client
                 {
                     // Server is unavailable
                     Console.WriteLine("Server has been disconnected...");
+                    Console.ReadLine();
                     break;
                 }
                 Console.WriteLine(string.Format("[{0}]: {1}", Username, message));

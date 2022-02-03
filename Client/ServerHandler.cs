@@ -38,7 +38,7 @@ namespace Client
             try
             {
                 Server.Connect(addr, port);
-                
+                ClientThread.Start();
                 return true;
             } catch(SocketException)
             {
@@ -64,14 +64,20 @@ namespace Client
         {
             while (true)
             {
-                NetworkStream NetStream = Server.GetStream();
-                if (!NetStream.DataAvailable)
+                try
                 {
-                    Thread.Sleep(17);
-                    continue;
+                    NetworkStream NetStream = Server.GetStream();
+                    if (!NetStream.DataAvailable)
+                    {
+                        Thread.Sleep(17);
+                        continue;
+                    }
+                    Message MsgObj = NetworkEncoder.Decode(NetStream);
+                    Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
+                } catch(InvalidOperationException)
+                {
+
                 }
-                Message MsgObj = NetworkEncoder.Decode(NetStream);
-                Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
             }
         }
     }

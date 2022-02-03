@@ -35,10 +35,10 @@ namespace Server
 
         public static bool Message(string msg)
         {
+            if (string.IsNullOrWhiteSpace(msg)) return false; // If the message are blank
             if (!Regex.IsMatch(msg, "^[a-zA-Z0-9_!@#$%^&*()-+={}[\\]<>:;<>,.\\?~\\\" ']+$")) return false; // RegExp check the sentence to ensure it doesn't have any weird character
             if (BlacklistWord.Any(msg.ToLower().Contains)) return false; // Ban some extreme words
             if (msg.Length > 3000) return false; // If character exceed 3000. *Not Byte/Bit*
-            if (string.IsNullOrWhiteSpace(msg)) return false; // If the message are blank
             return true;
         }
     }
