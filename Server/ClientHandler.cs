@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Server
 {
@@ -97,7 +93,7 @@ namespace Server
 
                 if (!FilterSys.Username(MsgObj.Name))
                 {
-                    sendMessage(client, new Message("SYSTEM", "Invalid username detected, please make sure the username only contains letters and numbers and that it doesn't contain any blacklisted word."));
+                    sendMessage(client, new Message("disconnect", "Invalid username detected, please make sure the username only contains letters and numbers and that it doesn't contain any blacklisted word.",MessageType.Command));
                     disconnectClient(client);
                     Console.WriteLine("Client failed username requirement, will now be disconnected...");
                     continue;
