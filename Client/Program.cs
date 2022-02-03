@@ -1,77 +1,88 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Net;
 using System.Threading;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Net;
 
 namespace Client
 {
     class Program
     {
-        static TcpClient client;
+        static ServerHandler ClientManager = new ServerHandler();
         static void Main(string[] args)
         {
             Console.Title = "CHAT CLIENT - by zhiyan114";
             Console.OutputEncoding = Encoding.UTF8;
+            
             Console.WriteLine("Select your username: ");
             string Username = Console.ReadLine();
-            while (client == null)
+            while (!ClientManager.Server.Connected)
             {
                 Console.WriteLine("Type the server IP Connection (format: IP:PORT): ");
-                string[] BindInfo = Console.ReadLine().Split(":");
-                if(BindInfo.Length == 1)
+                string UserInputIP = Console.ReadLine();
+                string[] BindInfo = string.IsNullOrWhiteSpace(UserInputIP) ? Array.Empty<string>() : UserInputIP.Split(":");
+                IPAddress Addr = IPAddress.Any;
+                int Port = 42069;
+
+                if (BindInfo.Length == 1 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBind))
                 {
-                    client = new TcpClient(BindInfo[0], 42069);
-                    if (client.Connected) {
-                        Console.Title = string.Format("Connected... ({0}:{1})",BindInfo[0],42069);
-                        break; 
-                    };
-                    Console.WriteLine("Client is not able to connect, please try again");
-                } if(BindInfo.Length == 2)
+                    Addr = AddrBind;
+                } else if(BindInfo.Length == 2 && IPAddress.TryParse(BindInfo[0], out IPAddress AddrBindb) && int.TryParse(BindInfo[1], out int BindPort))
                 {
-                    client = new TcpClient(BindInfo[0], int.TryParse(BindInfo[1], out int BindPort) ? BindPort: 42069);
-                    if (client.Connected) {
-                        Console.Title = string.Format("Connected... ({0}:{1})", BindInfo[0], BindPort);
-                        break;
-                    };
-                    Console.WriteLine("Client is not able to connect, please try again");
+                    Addr = AddrBindb;
+                    Port = BindPort;
                 } else
-                    Console.WriteLine("Invalid Server IP/PORT");
+                {
+                    // Do a domain name to validation before calling it invalid
+                    try
+                    {
+                        IPAddress[] ResolvedIP;
+                        if (BindInfo.Length > 0 && (ResolvedIP = Dns.GetHostAddresses(BindInfo[0])).Length > 0)
+                        {
+                            foreach(IPAddress IP in ResolvedIP)
+                            {
+                                // Get the first available IPv4 because IPv6 is not supported yet
+                                if(IP.AddressFamily == AddressFamily.InterNetwork)
+                                {
+                                    Addr = IP;
+                                    break;
+                                }
+                            }
+                        } else
+                        {
+                            Console.WriteLine("Invalid Server IP/PORT");
+                            continue;
+                        }
+                    } catch(SocketException)
+                    {
+                        Console.WriteLine("Invalid Server IP/PORT");
+                        continue;
+                    }
+                    
+                }
+                    
+                if (ClientManager.tryConnect(Addr,Port))
+                {
+                    Console.Title = string.Format("Connected... ({0}:{1})", BindInfo[0], 42069);
+                    break;
+                }
+                else
+                    Console.WriteLine("Server Connection failed, please try again...");
             }
-            Thread ClientThread = new Thread(new ThreadStart(MessageReceiver));
-            ClientThread.Start();
             Console.Clear();
             Console.WriteLine("Client Setup Completed, type a message to send or wait to receive the message...");
             while(true)
             {
-                try
+                string message = Console.ReadLine();
+                if (!ClientManager.sendMessage(new Message(Username, message)))
                 {
-                    string message = Console.ReadLine();
-                    if (client.Connected)
-                        NetworkEncoder.Encode(client.GetStream(), new Message(Username, message));
-                    Console.WriteLine(string.Format("[{0}]: {1}", Username, message));
-                } catch(Exception ex)
-                {
-                    Console.WriteLine("An Error Occured: " + ex.Message);
+                    // Server is unavailable
+                    Console.WriteLine("Server has been disconnected...");
+                    Console.ReadLine();
+                    break;
                 }
-            }
-        }
-        /// <summary>
-        /// This function handles the packet from the server. Should be threaded.
-        /// </summary>
-        static void MessageReceiver()
-        {
-            while(true)
-            {
-                NetworkStream NetStream = client.GetStream();
-                if (!NetStream.DataAvailable) {
-                    Thread.Sleep(17);
-                    continue;
-                }
-                Message MsgObj = NetworkEncoder.Decode(NetStream);
-                Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
+                Console.WriteLine(string.Format("[{0}]: {1}", Username, message));
             }
         }
     }
