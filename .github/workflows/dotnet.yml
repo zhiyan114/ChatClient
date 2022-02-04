@@ -48,10 +48,11 @@ jobs:
         dotnet-version: 5.0.x
     - name: Restore dependencies
       run: dotnet restore
+    # -p:PublishReadyToRun=true
     - name: Build for Windows Platform
-      run: dotnet publish -c Release -r win-x64 -p:PublishReadyToRun=true --self-contained=true "Chat Client.sln"
+      run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true --self-contained=true "Chat Client.sln"
     - name: Build for Linux Platform
-      run: dotnet publish -c Release -r linux-x64 --self-contained=true "Chat Client.sln"
+      run: dotnet publish -c Release -r linux-x64 --self-contained=true -p:PublishTrimmed=true "Chat Client.sln"
     - name: ZIP/Package the build file based on the Operating System
       run: |
         Copy-Item -Path "Client\bin\Release\net5.0\win-x64\publish\" -Destination "PubClient\" -Recurse
