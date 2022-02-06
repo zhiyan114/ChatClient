@@ -32,7 +32,6 @@ namespace Server
         /// <summary>
         /// Simple Message Filteration System
         /// </summary>
-
         public static bool Message(string msg)
         {
             if (string.IsNullOrWhiteSpace(msg)) return false; // If the message are blank

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Threading;
-using System.IO;
 using System.Text;
 using System.Net;
+using NetworkManager;
 
 namespace Client
 {
@@ -14,7 +13,6 @@ namespace Client
         {
             Console.Title = "CHAT CLIENT - by zhiyan114";
             Console.OutputEncoding = Encoding.UTF8;
-            
             Console.WriteLine("Select your username: ");
             string Username = Console.ReadLine();
             while (!ClientManager.Server.Connected)
@@ -59,9 +57,7 @@ namespace Client
                         Console.WriteLine("Invalid Server IP/PORT");
                         continue;
                     }
-                    
-                }
-                    
+                } 
                 if (ClientManager.tryConnect(Addr,Port))
                 {
                     Console.Title = string.Format("Connected... ({0}:{1})", BindInfo[0], 42069);

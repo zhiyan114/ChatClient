@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using NetworkManager;
 
 namespace Server
 {
@@ -40,7 +41,7 @@ namespace Server
                 if (clientIgnore == cli) continue;
                 try
                 {
-                    NetworkEncoder.Encode(cli.GetStream(), messageObject);
+                    NetEncoder.Encode(cli.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
                 }
                 catch (IOException)
                 {
@@ -54,7 +55,7 @@ namespace Server
         {
             try
             {
-                NetworkEncoder.Encode(client.GetStream(), messageObject);
+                NetEncoder.Encode(client.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
             } catch(IOException)
             {
                 disconnectClient(client);
@@ -89,31 +90,34 @@ namespace Server
                     Thread.Sleep(17);
                     continue;
                 }
-                Message MsgObj = NetworkEncoder.Decode(NetStream);
+                NetworkMessage NetMsg = NetEncoder.Decode(NetStream);
 
-                if (!FilterSys.Username(MsgObj.Name))
-                {
-                    sendMessage(client, new Message("disconnect", "Invalid username detected, please make sure the username only contains letters and numbers and that it doesn't contain any blacklisted word.",MessageType.Command));
-                    disconnectClient(client);
-                    Console.WriteLine("Client failed username requirement, will now be disconnected...");
-                    continue;
-                }
-                if (!FilterSys.Message(MsgObj.Content))
-                {
-                    string HexMsgID = Convert.ToHexString(MsgObj.MessageIdentifier);
-                    sendMessage(client, new Message("SYSTEM", "The message has been moderated, please make sure your message doesn't contain blacklisted words or encoding and that the total character is under 3000. " + string.Format("(Message ID: {0})", HexMsgID)));
-                    Console.WriteLine("Following Message has been moderated: " + string.Format("[{0}]: {1} (Message Hash ID: {2})", MsgObj.Name, MsgObj.Content, HexMsgID));
-                    continue;
-                }
-                Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
                 
-                switch(MsgObj.Type)
+                
+                switch(NetMsg.Type)
                 {
                     case MessageType.ChatMessage:
+                        Message MsgObj = (Message)NetMsg.Data;
+                        if (!FilterSys.Username(MsgObj.Name))
+                        {
+                            sendMessage(client, new Message("disconnect", "Invalid username detected, please make sure the username only contains letters and numbers and that it doesn't contain any blacklisted word."));
+                            disconnectClient(client);
+                            Console.WriteLine("Client failed username requirement, will now be disconnected...");
+                            continue;
+                        }
+                        if (!FilterSys.Message(MsgObj.Content))
+                        {
+                            string HexMsgID = Convert.ToHexString(MsgObj.MessageIdentifier);
+                            sendMessage(client, new Message("SYSTEM", "The message has been moderated, please make sure your message doesn't contain blacklisted words or encoding and that the total character is under 3000. " + string.Format("(Message ID: {0})", HexMsgID)));
+                            Console.WriteLine("Following Message has been moderated: " + string.Format("[{0}]: {1} (Message Hash ID: {2})", MsgObj.Name, MsgObj.Content, HexMsgID));
+                            continue;
+                        }
+                        Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
                         broadcastMessage(MsgObj, client);
                         break;
                     case MessageType.Command:
-                        incomingCommandHandler(client, MsgObj.Name, MsgObj.Content);
+                        Command CmdObj = (Command)NetMsg.Data;
+                        incomingCommandHandler(client, CmdObj.Type, CmdObj.Args);
                         break;
                     default:
                         // Probably some toxic client who is sending bad packets
@@ -127,11 +131,11 @@ namespace Server
         /// </summary>
         /// <param name="CommandType">string version of the command</param>
         /// <param name="MetaData">Additional Data to supply through (using JSON is preferred)</param>
-        private protected void incomingCommandHandler(TcpClient ReqCli, string CommandType, string MetaData = "")
+        private protected void incomingCommandHandler(TcpClient ReqCli, CommandType CmdType, object[] CmdArgs)
         {
-            switch (CommandType.ToLower())
+            switch (CmdType)
             {
-                case "shutdown":
+                case CommandType.Shutdown:
                     {
                         disconnectClient(ReqCli);
                         return;

@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using System.Text;
+using NetworkManager;
 
 namespace Server
 {
@@ -123,13 +124,10 @@ namespace Server
                     TcpClient Client = Listener.AcceptTcpClient();
                     Console.WriteLine("Client Connected...");
                     ClientManager.AddClient(Client);
-                    
                 } catch(Exception)
                 {
                 }
             }
         }
-        
-        
     }
 }

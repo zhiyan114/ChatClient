@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using NetworkManager;
 
 namespace Client
 {
@@ -20,7 +21,7 @@ namespace Client
             if (!Server.Connected) return false;
             try
             {
-                NetworkEncoder.Encode(Server.GetStream(), messageObject);
+                NetEncoder.Encode(Server.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
                 return true;
             } catch(IOException)
             {
@@ -72,11 +73,10 @@ namespace Client
                         Thread.Sleep(17);
                         continue;
                     }
-                    Message MsgObj = NetworkEncoder.Decode(NetStream);
+                    Message MsgObj = (Message)NetEncoder.Decode(NetStream).Data;
                     Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
                 } catch(InvalidOperationException)
                 {
-
                 }
             }
         }
