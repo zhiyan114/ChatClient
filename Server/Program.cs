@@ -124,13 +124,10 @@ namespace Server
                     TcpClient Client = Listener.AcceptTcpClient();
                     Console.WriteLine("Client Connected...");
                     ClientManager.AddClient(Client);
-                    
                 } catch(Exception)
                 {
                 }
             }
         }
-        
-        
     }
 }
