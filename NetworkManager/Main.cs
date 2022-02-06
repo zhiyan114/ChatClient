@@ -18,7 +18,7 @@ using System.Net.Sockets;
 
 namespace NetworkManager
 {
-    public static class Encoder
+    public static class NetEncoder
     {
         /// <summary>
         /// This function encodes Message Object into byte array that will be stream through NetStream

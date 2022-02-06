@@ -48,6 +48,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     # -p:PublishReadyToRun=true
+    - name: Run Standard Build
+      run: dotnet build --no-restore
+    - name: Run Unit Test
+      run: dotnet test --no-build --verbosity normal
     - name: Build for Windows Platform
       run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true --self-contained=true "Chat Client.sln"
     - name: Build for Linux Platform
@@ -97,5 +101,3 @@ jobs:
         asset_path: ./Linux-x64.zip
         asset_name: Linux-x64.zip
         asset_content_type: application/zip
-    #- name: Test
-    #  run: dotnet test --no-build --verbosity normal

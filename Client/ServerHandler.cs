@@ -21,7 +21,7 @@ namespace Client
             if (!Server.Connected) return false;
             try
             {
-                Encoder.Encode(Server.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
+                NetEncoder.Encode(Server.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
                 return true;
             } catch(IOException)
             {
@@ -73,7 +73,7 @@ namespace Client
                         Thread.Sleep(17);
                         continue;
                     }
-                    Message MsgObj = (Message)Encoder.Decode(NetStream).Data;
+                    Message MsgObj = (Message)NetEncoder.Decode(NetStream).Data;
                     Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
                 } catch(InvalidOperationException)
                 {

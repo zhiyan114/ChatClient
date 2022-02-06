@@ -41,7 +41,7 @@ namespace Server
                 if (clientIgnore == cli) continue;
                 try
                 {
-                    Encoder.Encode(cli.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
+                    NetEncoder.Encode(cli.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
                 }
                 catch (IOException)
                 {
@@ -55,7 +55,7 @@ namespace Server
         {
             try
             {
-               Encoder.Encode(client.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
+                NetEncoder.Encode(client.GetStream(), new NetworkMessage(MessageType.ChatMessage, messageObject));
             } catch(IOException)
             {
                 disconnectClient(client);
@@ -90,7 +90,7 @@ namespace Server
                     Thread.Sleep(17);
                     continue;
                 }
-                NetworkMessage NetMsg = Encoder.Decode(NetStream);
+                NetworkMessage NetMsg = NetEncoder.Decode(NetStream);
 
                 
                 

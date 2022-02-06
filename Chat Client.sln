@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{684094D3-35FD-4C3F-9734-F492C255CE48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkManager", "NetworkManager\NetworkManager.csproj", "{368122E6-26AA-46D4-B95D-1076C45CEDA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetworkManager", "NetworkManager\NetworkManager.csproj", "{368122E6-26AA-46D4-B95D-1076C45CEDA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETMGR-Test", "NETMGR-Test\NETMGR-Test.csproj", "{E881E6C5-A313-468D-8C53-F47D664936F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{368122E6-26AA-46D4-B95D-1076C45CEDA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{368122E6-26AA-46D4-B95D-1076C45CEDA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{368122E6-26AA-46D4-B95D-1076C45CEDA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E881E6C5-A313-468D-8C53-F47D664936F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E881E6C5-A313-468D-8C53-F47D664936F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E881E6C5-A313-468D-8C53-F47D664936F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E881E6C5-A313-468D-8C53-F47D664936F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
