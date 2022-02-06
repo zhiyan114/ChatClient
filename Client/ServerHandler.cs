@@ -77,7 +77,6 @@ namespace Client
                     Console.WriteLine(string.Format("[{0}]: {1}", MsgObj.Name, MsgObj.Content));
                 } catch(InvalidOperationException)
                 {
-
                 }
             }
         }
