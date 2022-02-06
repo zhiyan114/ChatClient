@@ -1,0 +1,103 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+#  Linux-x64:
+
+#    runs-on: ubuntu-latest
+
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Setup .NET
+#      uses: actions/setup-dotnet@v1
+#      with:
+#        dotnet-version: 5.0.x
+#    - name: Restore dependencies
+#      run: dotnet restore
+#    - name: Build and Configure Deployment Mode
+#      run: dotnet publish -c Release -r linux-x64 -p:PublishReadyToRun=true "Chat Client.sln"
+    #- name: Test
+    #  run: dotnet test --no-build --verbosity normal
+#    - name: Create Release
+#      id: create_release
+#      uses: actions/create-release@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+#      with:
+#        tag_name: ${{ github.ref }}
+#        release_name: Release ${{ github.ref }}
+#        body: |
+#          My comment
+#          On this release
+#          before exiting
+#          draft
+#        draft: true
+#        prerelease: false
+
+  Main-build:
+    
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    # -p:PublishReadyToRun=true
+    - name: Build for Windows Platform
+      run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true --self-contained=true "Chat Client.sln"
+    - name: Build for Linux Platform
+      run: dotnet publish -c Release -r linux-x64 --self-contained=true -p:PublishTrimmed=true "Chat Client.sln"
+    - name: ZIP/Package the build file based on the Operating System
+      run: |
+        Copy-Item -Path "Client\bin\Release\net5.0\win-x64\publish\" -Destination "PubClient\" -Recurse
+        Copy-Item -Path "Server\bin\Release\net5.0\win-x64\publish\" -Destination "PubServer\" -Recurse
+        tar -a -c -f Windows-x64.zip PubClient/* PubServer/*
+        Remove-Item -Path PubClient -Force -Recurse
+        Remove-Item -Path PubServer -Force -Recurse
+        Copy-Item -Path "Client\bin\Release\net5.0\linux-x64\publish" -Destination "PubClient\" -Recurse
+        Copy-Item -Path "Server\bin\Release\net5.0\linux-x64\publish" -Destination "PubServer\" -Recurse
+        tar -a -c -f Linux-x64.zip PubClient/* PubServer/*
+        
+    - name: Create draft release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          My comment
+          On this release
+          before exiting
+          draft
+        draft: true
+        prerelease: false
+    - name: Upload Windows Release Asset
+      id: Windows-Asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./Windows-x64.zip
+        asset_name: Windows-x64.zip
+        asset_content_type: application/zip
+    - name: Upload Linux Release Asset
+      id: Linux-Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./Linux-x64.zip
+        asset_name: Linux-x64.zip
+        asset_content_type: application/zip
+    #- name: Test
+    #  run: dotnet test --no-build --verbosity normal
