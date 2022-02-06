@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Threading;
-using System.IO;
 using System.Text;
 using System.Net;
+using NetworkManager;
 
 namespace Client
 {
