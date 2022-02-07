@@ -54,15 +54,15 @@ namespace NetworkManager
     public class Command
     {
         public Command() { } // Protobuf Support
-        public Command(CommandType Type, params object[] Args)
+        public Command(CommandType Type, params string[] Args)
         {
             this.Type = Type;
             this.Args = Args;
         }
         [ProtoMember(1)]
         public CommandType Type { get; set; }
-        [ProtoMember(2, DynamicType = true)]
-        [DefaultValue(new object[0])]
-        public object[] Args { get; set; } = new object[0];
+        [ProtoMember(2)]
+        [DefaultValue(new string[0])]
+        public string[] Args { get; set; } = Array.Empty<string>();
     }
 }
